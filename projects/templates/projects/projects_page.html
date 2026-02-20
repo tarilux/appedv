@@ -1,0 +1,139 @@
+{% extends 'projects/base.html' %}
+{% block content %}
+<h2>Page Projets</h2>
+
+<div class="row g-2 mb-3">
+  <div class="col-md-3"><input id="globalSearch" class="form-control" placeholder="Recherche globale"></div>
+  <div class="col-md-2"><select id="filterType" class="form-select"><option value="">Type</option>{% for o in type_options %}<option>{{ o }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><select id="filterExercice" class="form-select"><option value="">Exercice</option>{% for o in exercice_options %}<option>{{ o }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><select id="filterEtape" class="form-select"><option value="">Étape</option>{% for o in etape_options %}<option>{{ o }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><select id="filterSousEtape" class="form-select"><option value="">Sous étape</option>{% for o in sous_etape_options %}<option>{{ o }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><select id="filterChef" class="form-select"><option value="">Chef</option>{% for o in chef_options %}<option>{{ o }}</option>{% endfor %}</select></div>
+  <div class="col-md-2"><select id="filterAutonomie" class="form-select"><option value="">Autonomie</option>{% for o in autonomie_options %}<option>{{ o }}</option>{% endfor %}</select></div>
+  <div class="col-md-3"><select id="filterSituation" class="form-select"><option value="">Situation projet</option>{% for o in situation_options %}<option>{{ o }}</option>{% endfor %}</select></div>
+</div>
+
+<div class="table-responsive">
+  <table class="table table-striped table-hover bg-white" id="projectsTable">
+    <thead>
+      <tr>
+        <th data-sort="id_projet">ID projet</th>
+        <th data-sort="libelle">Libellé</th>
+        <th data-sort="chef">Chef</th>
+        <th data-sort="etape">Étape</th>
+        <th data-sort="montant_contrat">Montant contrat</th>
+        <th data-sort="total_attachement">Total attachement</th>
+        <th data-sort="pourcentage_reception">% réception</th>
+        <th data-sort="avancement">Avancement</th>
+        <th data-sort="situation">Situation</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<div class="d-flex justify-content-between align-items-center">
+  <small id="paginationInfo" class="text-muted"></small>
+  <div>
+    <button class="btn btn-sm btn-outline-secondary" id="prevPage">Précédent</button>
+    <span id="pageNumber" class="mx-2"></span>
+    <button class="btn btn-sm btn-outline-secondary" id="nextPage">Suivant</button>
+  </div>
+</div>
+
+<script>
+const DATA = {{ projects_json|safe }};
+let filtered = [...DATA];
+let page = 1;
+const pageSize = 10;
+let sortKey = 'id_projet';
+let sortDir = 'asc';
+
+function pctBadge(v) {
+  if (v === null || v === undefined || v === '') return '<span>-</span>';
+  if (v > 80) return `<span class="badge bg-success">${v}%</span>`;
+  if (v >= 30) return `<span class="badge bg-warning text-dark">${v}%</span>`;
+  return `<span class="badge bg-danger">${v}%</span>`;
+}
+
+function applyFilters() {
+  const q = document.getElementById('globalSearch').value.toLowerCase();
+  const t = document.getElementById('filterType').value;
+  const e = document.getElementById('filterExercice').value;
+  const et = document.getElementById('filterEtape').value;
+  const se = document.getElementById('filterSousEtape').value;
+  const c = document.getElementById('filterChef').value;
+  const a = document.getElementById('filterAutonomie').value;
+  const s = document.getElementById('filterSituation').value;
+
+  filtered = DATA.filter(r => {
+    const blob = Object.values(r).join(' ').toLowerCase();
+    return (!q || blob.includes(q)) &&
+      (!t || r.type === t) &&
+      (!e || r.exercice === e) &&
+      (!et || r.etape === et) &&
+      (!se || r.sous_etape === se) &&
+      (!c || r.chef === c) &&
+      (!a || String(r.autonomie) === a) &&
+      (!s || r.situation === s);
+  });
+  sortAndRender(true);
+}
+
+function sortAndRender(resetPage=false){
+  filtered.sort((a,b)=>{
+    const av=a[sortKey], bv=b[sortKey];
+    if (av===bv) return 0;
+    if (av===null || av===undefined) return 1;
+    if (bv===null || bv===undefined) return -1;
+    return (av > bv ? 1 : -1) * (sortDir==='asc' ? 1 : -1);
+  });
+  if(resetPage) page=1;
+  renderPage();
+}
+
+function renderPage() {
+  const tbody = document.querySelector('#projectsTable tbody');
+  const start = (page - 1) * pageSize;
+  const rows = filtered.slice(start, start + pageSize);
+  tbody.innerHTML = rows.map(r => `
+    <tr>
+      <td>${r.id_projet}</td><td>${r.libelle}</td><td>${r.chef}</td><td>${r.etape}</td>
+      <td>${r.montant_contrat}</td><td>${r.total_attachement}</td><td>${pctBadge(r.pourcentage_reception)}</td>
+      <td>${r.avancement}</td><td>${r.situation || '-'}</td>
+      <td>
+        <a class="btn btn-sm btn-outline-info" href="/projects/${r.id}/">Voir</a>
+        <a class="btn btn-sm btn-outline-primary" href="/projects/${r.id}/edit/">Modifier</a>
+        <form method="post" action="/projects/${r.id}/archive/" class="d-inline">
+          <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+          <button class="btn btn-sm btn-outline-warning">Archiver</button>
+        </form>
+      </td>
+    </tr>`).join('');
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  if (page > totalPages) page = totalPages;
+  document.getElementById('pageNumber').textContent = `Page ${page}/${totalPages}`;
+  document.getElementById('paginationInfo').textContent = `${filtered.length} résultat(s)`;
+}
+
+document.querySelectorAll('#projectsTable th[data-sort]').forEach(th => {
+  th.style.cursor='pointer';
+  th.addEventListener('click', () => {
+    const key=th.dataset.sort;
+    if (sortKey===key) sortDir = sortDir==='asc' ? 'desc' : 'asc';
+    else { sortKey = key; sortDir='asc'; }
+    sortAndRender();
+  });
+});
+
+['globalSearch','filterType','filterExercice','filterEtape','filterSousEtape','filterChef','filterAutonomie','filterSituation']
+  .forEach(id => document.getElementById(id).addEventListener('input', applyFilters));
+
+document.getElementById('prevPage').addEventListener('click', ()=>{ if(page>1){ page--; renderPage(); }});
+document.getElementById('nextPage').addEventListener('click', ()=>{ const tp=Math.max(1, Math.ceil(filtered.length/pageSize)); if(page<tp){ page++; renderPage(); }});
+
+sortAndRender(true);
+</script>
+{% endblock %}

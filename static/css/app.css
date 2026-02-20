@@ -1,0 +1,7 @@
+body { background: #f1f5f9; }
+.sidebar { width: 240px; min-height: 100vh; background: linear-gradient(180deg, #0f172a, #1e293b); position: sticky; top: 0; }
+.sidebar a { color: #cbd5e1; display: block; text-decoration: none; margin: 10px 0; }
+.sidebar a:hover { color: #fff; }
+.content { flex: 1; overflow-x: auto; }
+.kpi { background:#fff; border-radius: 10px; padding: 16px; box-shadow: 0 4px 12px rgba(15,23,42,.08); }
+@media (max-width: 992px) { .sidebar { width: 100px; font-size: 12px; } .sidebar h4 { font-size: 14px; } }
