@@ -1,0 +1,18 @@
+{% extends 'projects/base.html' %}
+{% block content %}
+<h2>Détail projet {{ project.id_projet }}</h2>
+<div class="card">
+  <div class="card-body">
+    <p><strong>Libellé:</strong> {{ project.libelle }}</p>
+    <p><strong>Chef projet:</strong> {{ project.chef_projet }}</p>
+    <p><strong>Étape:</strong> {{ project.etape_en_cours }} / {{ project.sous_etape }}</p>
+    <p><strong>Montant contrat:</strong> {{ project.montant_contrat }}</p>
+    <p><strong>Total attachement:</strong> {{ project.total_attachement }}</p>
+    <p><strong>% réception:</strong> {{ project.pourcentage_reception|default:'-' }}</p>
+    <p><strong>Avancement:</strong> {{ project.avancement_travaux }}</p>
+    <p><strong>Situation:</strong> {{ project.situation_projet|default:'-' }}</p>
+    <a class="btn btn-outline-primary" href="/projects/{{ project.id }}/edit/">Modifier</a>
+    <a class="btn btn-outline-secondary" href="/projects/">Retour</a>
+  </div>
+</div>
+{% endblock %}

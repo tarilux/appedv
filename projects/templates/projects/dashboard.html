@@ -1,0 +1,108 @@
+{% extends 'projects/base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h2 class="mb-0">Dashboard projets</h2>
+  <div>
+    {% if show_archived %}
+      <a class="btn btn-outline-secondary btn-sm" href="/">Masquer archivés</a>
+    {% else %}
+      <a class="btn btn-outline-secondary btn-sm" href="/?archived=1">Afficher archivés</a>
+    {% endif %}
+  </div>
+</div>
+
+<form method="get" class="row g-2 mb-3 align-items-end">
+  <div class="col-md-3">
+    <label class="form-label">Étape</label>
+    <select name="etape" class="form-select">
+      <option value="">Toutes</option>
+      {% for value, label in etape_options %}
+        <option value="{{ value }}" {% if selected_etape == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <label class="form-label">Chef de projet</label>
+    <select name="chef" class="form-select">
+      <option value="">Tous</option>
+      {% for chef in chef_options %}
+        <option value="{{ chef }}" {% if selected_chef == chef %}selected{% endif %}>{{ chef }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="col-md-3">
+    <input type="hidden" name="archived" value="{% if show_archived %}1{% else %}0{% endif %}">
+    <button class="btn btn-primary">Filtrer</button>
+    <a class="btn btn-outline-dark" href="/">Réinitialiser</a>
+  </div>
+</form>
+
+
+<div class="mb-3">
+  <a class="btn btn-sm btn-outline-success" href="/export/projects.xlsx{% if querystring %}?{{ querystring }}{% endif %}">Export Excel (brut filtré)</a>
+  <a class="btn btn-sm btn-outline-danger" href="/export/projects.pdf{% if querystring %}?{{ querystring }}{% endif %}">Export PDF (synthèse)</a>
+  <a class="btn btn-sm btn-outline-primary" href="/export/projects.pptx{% if querystring %}?{{ querystring }}{% endif %}">Export PowerPoint (dashboard)</a>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-3"><div class="kpi">Nombre total projets actifs<br><strong>{{ active_count }}</strong></div></div>
+  <div class="col-md-3"><div class="kpi">Total montant engagé<br><strong>{{ total_engage }} MAD</strong></div></div>
+  <div class="col-md-3"><div class="kpi">Total montant réceptionné<br><strong>{{ total_receptionne }} MAD</strong></div></div>
+  <div class="col-md-3"><div class="kpi">% moyen réception<br><strong>{{ avg_reception }} %</strong></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-4"><div class="card"><div class="card-body"><h6>Répartition par étape</h6><canvas id="etapeChart" height="180"></canvas></div></div></div>
+  <div class="col-lg-4"><div class="card"><div class="card-body"><h6>Répartition par chef de projet</h6><canvas id="chefChart" height="180"></canvas></div></div></div>
+  <div class="col-lg-4"><div class="card"><div class="card-body"><h6>Engagement vs paiement</h6><canvas id="engagementChart" height="180"></canvas></div></div></div>
+</div>
+
+<div class="table-responsive">
+<table class="table table-striped align-middle bg-white">
+  <thead><tr><th>ID Projet</th><th>Étape</th><th>Sous-étape</th><th>Chef</th><th>Engagé</th><th>Réceptionné</th><th>% Réception</th><th>Statut</th><th>Actions</th></tr></thead>
+  <tbody>
+  {% for p in projects %}
+    <tr>
+      <td>{{ p.id_projet }}</td><td>{{ p.etape_en_cours }}</td><td>{{ p.sous_etape }}</td><td>{{ p.chef_projet }}</td>
+      <td>{{ p.montant_engage }}</td><td>{{ p.total_attachement }}</td>
+      <td>{% if p.pourcentage_reception is None %}-{% else %}{{ p.pourcentage_reception }} %{% endif %}</td>
+      <td>{{ p.statut }}</td>
+      <td>
+        <a class="btn btn-sm btn-outline-primary" href="/projects/{{ p.id }}/edit/">Modifier</a>
+        {% if p.statut == 'actif' %}
+        <form method="post" action="/projects/{{ p.id }}/archive/" class="d-inline">{% csrf_token %}
+          <button class="btn btn-sm btn-outline-warning">Archiver</button>
+        </form>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<script>
+new Chart(document.getElementById('etapeChart'), {
+  type: 'doughnut',
+  data: {labels: {{ chart_etape_labels|safe }}, datasets: [{data: {{ chart_etape_values|safe }}, backgroundColor: ['#3b82f6','#14b8a6','#f59e0b','#6366f1','#ef4444']}]},
+  options: {responsive: true, maintainAspectRatio: false}
+});
+
+new Chart(document.getElementById('chefChart'), {
+  type: 'bar',
+  data: {labels: {{ chart_chef_labels|safe }}, datasets: [{label: 'Projets', data: {{ chart_chef_values|safe }}, backgroundColor: '#10b981'}]},
+  options: {responsive: true, maintainAspectRatio: false, plugins: {legend: {display: false}}}
+});
+
+new Chart(document.getElementById('engagementChart'), {
+  type: 'bar',
+  data: {
+    labels: {{ chart_evsp_labels|safe }},
+    datasets: [
+      {label: 'Engagé', data: {{ chart_evsp_engage|safe }}, backgroundColor: '#2563eb'},
+      {label: 'Réceptionné', data: {{ chart_evsp_receptionne|safe }}, backgroundColor: '#f97316'}
+    ]
+  },
+  options: {responsive: true, maintainAspectRatio: false}
+});
+</script>
+{% endblock %}

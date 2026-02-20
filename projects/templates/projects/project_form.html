@@ -1,0 +1,126 @@
+{% extends 'projects/base.html' %}
+{% block content %}
+<h2>{{ title }}</h2>
+{% if project %}
+<div class="alert alert-secondary">
+  Pourcentage réception (calculé) :
+  <strong>{% if project.pourcentage_reception is None %}-{% else %}{{ project.pourcentage_reception }} %{% endif %}</strong>
+</div>
+{% endif %}
+
+<form method="post" class="row g-3">{% csrf_token %}
+    <div class="col-12">
+    <div class="card">
+      <div class="card-header"><strong>Identification</strong></div>
+      <div class="card-body row g-3">
+        <div class="col-md-4" id="field-wrap-id_projet"><label class="form-label">{{ form.id_projet.label }}</label>{{ form.id_projet }}</div>
+        <div class="col-md-4" id="field-wrap-type"><label class="form-label">{{ form.type.label }}</label>{{ form.type }}</div>
+        <div class="col-md-4" id="field-wrap-exercice"><label class="form-label">{{ form.exercice.label }}</label>{{ form.exercice }}</div>
+        <div class="col-md-6" id="field-wrap-libelle"><label class="form-label">{{ form.libelle.label }}</label>{{ form.libelle }}</div>
+        <div class="col-md-6" id="field-wrap-chef_projet"><label class="form-label">{{ form.chef_projet.label }}</label>{{ form.chef_projet }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><strong>Financier</strong></div>
+      <div class="card-body row g-3">
+        <div class="col-md-4" id="field-wrap-montant_estime"><label class="form-label">{{ form.montant_estime.label }}</label>{{ form.montant_estime }}</div>
+        <div class="col-md-4" id="field-wrap-montant_engage"><label class="form-label">{{ form.montant_engage.label }}</label>{{ form.montant_engage }}</div>
+        <div class="col-md-4" id="field-wrap-montant_contrat"><label class="form-label">{{ form.montant_contrat.label }}</label>{{ form.montant_contrat }}</div>
+        <div class="col-md-4" id="field-wrap-total_attachement"><label class="form-label">{{ form.total_attachement.label }}</label>{{ form.total_attachement }}</div>
+        <div class="col-md-4" id="field-wrap-num_contrat"><label class="form-label">{{ form.num_contrat.label }}</label>{{ form.num_contrat }}</div>
+        <div class="col-md-4" id="field-wrap-fournisseur"><label class="form-label">{{ form.fournisseur.label }}</label>{{ form.fournisseur }}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header"><strong>Planification &amp; Suivi</strong></div>
+      <div class="card-body row g-3">
+        <div class="col-md-4" id="field-wrap-etape_en_cours"><label class="form-label">{{ form.etape_en_cours.label }}</label>{{ form.etape_en_cours }}</div>
+        <div class="col-md-4" id="field-wrap-sous_etape"><label class="form-label">{{ form.sous_etape.label }}</label>{{ form.sous_etape }}</div>
+        <div class="col-md-4" id="field-wrap-situation_projet"><label class="form-label">{{ form.situation_projet.label }}</label>{{ form.situation_projet }}</div>
+
+        <div class="col-md-3" id="field-wrap-date_signature_os"><label class="form-label">{{ form.date_signature_os.label }}</label>{{ form.date_signature_os }}</div>
+        <div class="col-md-3" id="field-wrap-delai_projet"><label class="form-label">{{ form.delai_projet.label }}</label>{{ form.delai_projet }}</div>
+        <div class="col-md-3" id="field-wrap-date_fin_contrat"><label class="form-label">{{ form.date_fin_contrat.label }}</label>{{ form.date_fin_contrat }}</div>
+        <div class="col-md-3" id="field-wrap-date_fin_actualisee"><label class="form-label">{{ form.date_fin_actualisee.label }}</label>{{ form.date_fin_actualisee }}</div>
+
+        <div class="col-md-4" id="field-wrap-autonomie"><label class="form-label">{{ form.autonomie.label }}</label>{{ form.autonomie }}</div>
+        <div class="col-md-4" id="field-wrap-dernier_mois_attache"><label class="form-label">{{ form.dernier_mois_attache.label }}</label>{{ form.dernier_mois_attache }}</div>
+        <div class="col-md-4" id="field-wrap-avancement_travaux"><label class="form-label">{{ form.avancement_travaux.label }}</label>{{ form.avancement_travaux }}</div>
+
+        <div class="col-md-4" id="field-wrap-travaux_precedents"><label class="form-label">{{ form.travaux_precedents.label }}</label>{{ form.travaux_precedents }}</div>
+        <div class="col-md-4" id="field-wrap-travaux_en_cours"><label class="form-label">{{ form.travaux_en_cours.label }}</label>{{ form.travaux_en_cours }}</div>
+        <div class="col-md-4" id="field-wrap-travaux_prochains"><label class="form-label">{{ form.travaux_prochains.label }}</label>{{ form.travaux_prochains }}</div>
+      </div>
+    </div>
+  </div>
+
+  {% for field in form %}
+    {% if field.errors %}
+      <div class="col-12"><div class="text-danger small">{{ field.label }}: {{ field.errors }}</div></div>
+    {% endif %}
+  {% endfor %}
+
+  <div class="col-12"><button class="btn btn-primary">Enregistrer</button></div>
+</form>
+
+<script>
+const sousEtapesMap = {{ sous_etapes_map|safe }};
+const situationOptions = {{ situation_options|safe }};
+
+document.querySelectorAll('input, textarea, select').forEach(el => el.classList.add('form-control'));
+
+const etapeInput = document.getElementById('id_etape_en_cours');
+const sousEtapeInput = document.getElementById('id_sous_etape');
+const situationInput = document.getElementById('id_situation_projet');
+const situationWrap = document.getElementById('field-wrap-situation_projet');
+
+function refreshSousEtapeOptions() {
+  const etape = etapeInput.value;
+  const allowed = sousEtapesMap[etape] || [];
+  const current = sousEtapeInput.value;
+  sousEtapeInput.innerHTML = '';
+  allowed.forEach(item => {
+    const opt = document.createElement('option');
+    opt.value = item;
+    opt.textContent = item;
+    sousEtapeInput.appendChild(opt);
+  });
+  if (allowed.includes(current)) {
+    sousEtapeInput.value = current;
+  }
+}
+
+function refreshSituationField() {
+  const etape = etapeInput.value;
+  if (etape === 'Exécution') {
+    situationWrap.style.display = 'block';
+    const current = situationInput.value;
+    situationInput.innerHTML = '<option value="">---------</option>';
+    situationOptions.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item;
+      opt.textContent = item;
+      situationInput.appendChild(opt);
+    });
+    situationInput.value = current;
+  } else {
+    situationInput.value = '';
+    situationWrap.style.display = 'none';
+  }
+}
+
+etapeInput.addEventListener('change', () => {
+  refreshSousEtapeOptions();
+  refreshSituationField();
+});
+
+refreshSousEtapeOptions();
+refreshSituationField();
+</script>
+{% endblock %}

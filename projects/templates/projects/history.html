@@ -1,0 +1,18 @@
+{% extends 'projects/base.html' %}
+{% block content %}
+<h2>Historique des modifications</h2>
+<div class="table-responsive"><table class="table table-sm table-striped bg-white">
+  <thead><tr><th>Date</th><th>ID Projet</th><th>Champ modifié</th><th>Ancienne valeur</th><th>Nouvelle valeur</th></tr></thead>
+  <tbody>
+  {% for log in logs %}
+    <tr>
+      <td>{{ log.date_modification }}</td>
+      <td>{{ log.projet.id_projet }}</td>
+      <td>{{ log.champ_modifie }}</td>
+      <td><pre class="small m-0">{{ log.ancienne_valeur }}</pre></td>
+      <td><pre class="small m-0">{{ log.nouvelle_valeur }}</pre></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

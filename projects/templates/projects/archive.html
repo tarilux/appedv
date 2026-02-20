@@ -1,0 +1,15 @@
+{% extends 'projects/base.html' %}
+{% block content %}
+<h2>Archives</h2>
+<div class="table-responsive"><table class="table table-bordered bg-white">
+  <thead><tr><th>ID Projet</th><th>Libellé</th><th>Étape</th><th>Action</th></tr></thead>
+  <tbody>
+  {% for p in projects %}
+  <tr>
+    <td>{{ p.id_projet }}</td><td>{{ p.libelle }}</td><td>{{ p.etape_en_cours }}</td>
+    <td><form method="post" action="/projects/{{ p.id }}/restore/">{% csrf_token %}<button class="btn btn-sm btn-success">Restaurer</button></form></td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}
