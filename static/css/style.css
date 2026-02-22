@@ -1,0 +1,25 @@
+:root {
+  --bg: #0f172a;
+  --sidebar: #111827;
+  --card: #1e293b;
+  --text-main: #f1f5f9;
+  --text-secondary: #94a3b8;
+}
+body { background: var(--bg); color: var(--text-main); min-height: 100vh; scroll-behavior: smooth; }
+.sidebar { width: 250px; background: var(--sidebar); min-height: 100vh; position: sticky; top: 0; }
+.nav-link { color: var(--text-secondary); border-radius: 12px; transition: all .2s; }
+.nav-link:hover { color: var(--text-main); background: rgba(59,130,246,.2); }
+.card-panel, .kpi-card { background: rgba(30,41,59,.92); border: 1px solid rgba(148,163,184,.2); border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,.2); padding: 1rem; }
+.kpi-card { min-height: 110px; }
+.topbar { border-bottom: 1px solid rgba(148,163,184,.2); padding-bottom: .75rem; }
+.badge.etat-planification { background: #64748b; }
+.badge.etat-execution { background: #3b82f6; }
+.badge.etat-cloture { background: #10b981; }
+.badge.etat-archive { background: #ef4444; }
+.progress { height: 22px; border-radius: 999px; background: #334155; }
+.progress-bar { background: linear-gradient(90deg, #3b82f6, #10b981); }
+.table-hover tbody tr:hover { background: rgba(59,130,246,.15); }
+.login-page { display:flex; align-items:center; justify-content:center; }
+.login-card { width: 420px; background: var(--card); padding: 2rem; border-radius: 16px; }
+input, textarea, select { background:#0b1220 !important; color:var(--text-main) !important; border: 1px solid #334155 !important; }
+.pagination .page-link { background: #111827; color: var(--text-main); border-color:#334155; }

@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-3 mb-4">
+  <div class="col-md-4 col-xl-2"><div class="kpi-card"><small>Actifs</small><h4 class="counter" data-value="{{ stats.total_actifs }}">0</h4></div></div>
+  <div class="col-md-4 col-xl-2"><div class="kpi-card"><small>Exécution</small><h4 class="counter" data-value="{{ stats.execution }}">0</h4></div></div>
+  <div class="col-md-4 col-xl-2"><div class="kpi-card"><small>Clôturés</small><h4 class="counter" data-value="{{ stats.clotures }}">0</h4></div></div>
+  <div class="col-md-4 col-xl-2"><div class="kpi-card"><small>Archivés</small><h4 class="counter" data-value="{{ stats.archives }}">0</h4></div></div>
+  <div class="col-md-4 col-xl-2"><div class="kpi-card"><small>Budget total</small><h4>{{ stats.budget_total }}</h4></div></div>
+  <div class="col-md-4 col-xl-2"><div class="kpi-card"><small>Budget engagé</small><h4>{{ stats.budget_engage }}</h4></div></div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-lg-5"><div class="card-panel"><canvas id="stateChart"></canvas></div></div>
+  <div class="col-lg-7"><div class="card-panel"><canvas id="budgetChart"></canvas></div></div>
+</div>
+
+<div class="card-panel">
+  <div class="d-flex justify-content-between mb-3"><h5>Projets récents</h5><a href="{% url 'project_list' %}">Voir tout</a></div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover align-middle">
+      <thead><tr><th>Référence</th><th>Intitulé</th><th>État</th><th>Budget</th><th>Progression</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for project in recent_projects %}
+        <tr>
+          <td>{{ project.reference }}</td>
+          <td>{{ project.intitule }}</td>
+          <td><span class="badge etat-{{ project.etat|slugify }}">{{ project.etat }}</span></td>
+          <td>{{ project.budget_previsionnel }}</td>
+          <td><div class="progress bg-secondary-subtle"><div class="progress-bar" style="width: {{ project.taux_avancement }}%">{{ project.taux_avancement }}%</div></div></td>
+          <td><a href="{% url 'project_detail' project.pk %}" class="btn btn-sm btn-outline-light">Détail</a></td>
+        </tr>
+      {% empty %}
+        <tr><td colspan="6">Aucun projet disponible.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{{ state_distribution|json_script:'state-data' }}
+{{ budget_evolution|json_script:'budget-data' }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+const states = JSON.parse(document.getElementById('state-data').textContent);
+const budget = JSON.parse(document.getElementById('budget-data').textContent);
+new Chart(document.getElementById('stateChart'), {
+  type: 'doughnut',
+  data: {labels: states.map(s=>s.etat), datasets: [{data: states.map(s=>s.total), backgroundColor:['#64748b','#3b82f6','#10b981']}]}
+});
+new Chart(document.getElementById('budgetChart'), {
+  type: 'line',
+  data: {labels: budget.map(b=>b.date_debut), datasets: [{label:'Budget', data: budget.map(b=>b.budget_previsionnel), borderColor:'#3b82f6', tension:.4}]}
+});
+</script>
+{% endblock %}
