@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row g-3">
+  <div class="col-lg-7">
+    <div class="card-panel">
+      <h4>{{ project.reference }} - {{ project.intitule }}</h4>
+      <p>{{ project.description }}</p>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item bg-transparent">État: <span class="badge etat-{{ project.etat|slugify }}">{{ project.etat }}</span></li>
+        <li class="list-group-item bg-transparent">Budget prévisionnel: {{ project.budget_previsionnel }}</li>
+        <li class="list-group-item bg-transparent">Montant contrat: {{ project.montant_contrat_affichage|default:'-' }}</li>
+        <li class="list-group-item bg-transparent">Situation projet: {{ project.situation_projet|default:'-' }}</li>
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card-panel">
+      <h5>Historique récent</h5>
+      <ul class="timeline">
+      {% for h in history %}
+        <li><strong>{{ h.champ_modifie }}</strong> : {{ h.ancienne_valeur }} → {{ h.nouvelle_valeur }}<br><small>{{ h.date_modification }}</small></li>
+      {% empty %}<li>Aucun historique.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}

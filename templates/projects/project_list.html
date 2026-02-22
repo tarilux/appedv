@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card-panel">
+  <form class="row g-2 mb-3" method="get">
+    <div class="col-md-6"><input type="text" class="form-control" placeholder="Recherche..." name="q" value="{{ query }}" id="searchInput"></div>
+    <div class="col-md-3">
+      <select name="archive" class="form-select">
+        <option value="0" {% if archive_filter == '0' %}selected{% endif %}>Actifs</option>
+        <option value="1" {% if archive_filter == '1' %}selected{% endif %}>Archivés</option>
+      </select>
+    </div>
+    <div class="col-md-3"><button class="btn btn-primary w-100">Filtrer</button></div>
+  </form>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover" id="projectTable">
+      <thead><tr><th>Référence</th><th>Intitulé</th><th>État</th><th>Budget</th><th>Avancement</th><th>Actions</th></tr></thead>
+      <tbody>
+      {% for project in page_obj %}
+      <tr>
+        <td>{{ project.reference }}</td><td>{{ project.intitule }}</td>
+        <td><span class="badge etat-{{ project.etat|slugify }}">{{ project.etat }}</span></td>
+        <td>{{ project.budget_previsionnel }}</td>
+        <td><div class="progress"><div class="progress-bar" style="width:{{ project.taux_avancement }}%">{{ project.taux_avancement }}%</div></div></td>
+        <td class="d-flex gap-1">
+          <a class="btn btn-sm btn-outline-light" href="{% url 'project_detail' project.pk %}">Voir</a>
+          <a class="btn btn-sm btn-outline-info" href="{% url 'project_update' project.pk %}">Modifier</a>
+          {% if not project.archive %}<a class="btn btn-sm btn-outline-danger" href="{% url 'project_archive' project.pk %}">Archiver</a>{% endif %}
+          <a class="btn btn-sm btn-outline-success" href="{% url 'export_pdf' project.pk %}">PDF</a>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <nav>
+    <ul class="pagination">
+      {% if page_obj.has_previous %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}&q={{ query }}&archive={{ archive_filter }}">Préc.</a></li>{% endif %}
+      <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+      {% if page_obj.has_next %}<li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}&q={{ query }}&archive={{ archive_filter }}">Suiv.</a></li>{% endif %}
+    </ul>
+  </nav>
+</div>
+{% endblock %}
